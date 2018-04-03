@@ -31,18 +31,20 @@ def getopts(argv):
     return opts
 
 
-opts = getopts(sys.argv)
+opts = getopts(sys.argv) # a dictionary of the cli arguments
 
 print "\n"
 pprint.pprint(opts)
 print "\n"
 
-in_config = open(opts["filename"], 'r').read() # creates a textfield with the contents of filename
+in_config = open(opts["filename"], 'r').read() # creates a string with the contents of filename
 
-objects = re.findall(r"object network .*", in_config) #finds all the lines that have object followed by a space
+
+
+objects = re.compile(r"^\s*object network .*").findall(in_config) #finds all the lines that have object followed by a space
 
 #print in_config
-print objects
+#print objects
 print type(in_config)
 print len(objects)
 
