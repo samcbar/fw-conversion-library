@@ -1,45 +1,60 @@
 
 # This library will handle ASA objects and policy
 
-#import pprint to view dictionary
-import pprint
+import re # going to need regex
+import ipaddress #need this for things and stuff.
 
-# going to need regex
-import re
-
-'''
-Create a Dictionary of commandline argument
-'''
 
 def get_asa_net_obj(asa_config):
-    "receives a text asa configuration file, returns a list with network object definitions"
+    '''
+    receives a text asa configuration file as a string, returns a list with network object definitions
 
-    #create a list for the objects
-    #list because order for objects is not important
-    #   for converting between vendors
-    #objects is a list of dictionaries, each entry in the list
-    #   is the name of the object
-    objects = []
+    Network objects include:
+        FQDNs
+        Network Objects
+        Host Objects
+        IP Address Ranges
+    '''
 
-    #asa objects look like this:
+    # network object regex string
+    _RE_NETOBJECT_STR = r'^object\s+network\s+(.*)\s+(subnet|range|host|fqdn)\s+(.*)'
+    # compiled network object regex
+    _RE_NETOBJ = re.compile(_RE_NETOBJECT_STR, re.MULTILINE)
+    # finds all the objects, but not descriptions, makes a list of tuples
+    obj_list = _RE_NETOBJ.findall(asa_config)
 
-    #object network host1
-    # host 192.12.45.66
-    #object network 10.10.0.0-19
-    # subnet 10.10.0.0 255.255.224.0
-    # description Local summarized net
-    #object network Microsoft-Update
-    # fqdn v4 update.microsoft.com
+    #
+    # format for dictionary
+    #
+    # name: obj-GPYVPF201325BL {
+    #   type: fqdn
+    #   fqdn: GPYVPF201325BL.lstc.lesschwab.com
+    # }
+    #
+
+    # dictionary of objects
+    obj_dict = {}
 
 
+    for i in obj_list: # for each object in the list
+        obj_name_str = "".join(i[0]) #turn the tuple into a string
+        obj_dict[i[0]] = {} #make a dictionary named after the object
+        #obj_dict[i[0]]["name"] = i[0].rstrip() # the name of the object
+        obj_dict[i[0]]["type"] = i[1] # the type of the object
 
+        #clean up the data depending on the objects type
+        if obj_dict[i[0]]["type"] == "fqdn":
+            obj_dict[i[0]]["fqdn"] = re.split("\s|/",i[2]).pop()
+        if obj_dict[i[0]]["type"] == "host":
+            obj_dict[i[0]]["host"] = i[2]
+        elif obj_dict[i[0]]["type"] == "subnet":
+            network,subnet = re.split("\s|/",i[2])
+            obj_dict[i[0]]["network"] = network
+            obj_dict[i[0]]["prefixlen"] = ipaddress.ip_network(network + '/' + subnet).prefixlen #works for ipv4 and 6
+        elif obj_dict[i[0]]["type"] == "range":
+            range_first,range_last = i[2].split(" ")
+            obj_dict[i[0]]["range first"] = range_first
+            obj_dict[i[0]]["range last"] = range_last
 
-    #return the list of objects
-    return objects
-
-
-f = open('asa.txt', 'r')
-
-print '\n'
-pprint.pprint(asa_obj_in(f))
-print '\n'
+    # return the dictionary of objects
+    return obj_dict
