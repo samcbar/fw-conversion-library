@@ -41,8 +41,3 @@ in_config = open(opts["filename"], 'r').read()
 obj_dict = asa.get_asa_net_obj(in_config)
 
 pprint.pprint(obj_dict)
-#for k, v in obj_dict.items():
-#    print(k, v)
-#pprint.pprint(obj_dict["obj-ok2static-oktacdn-com.name"])
-#pprint.pprint(obj_dict[obj-ok2static-oktacdn-com.type])
-#pprint.pprint(obj_dict[obj-ok2static-oktacdn-com.data])
