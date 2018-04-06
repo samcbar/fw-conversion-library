@@ -2,7 +2,7 @@
 # This library will handle ASA objects and policy
 
 import re # going to need regex
-import ipaddress #need this for things and stuff.
+import ipaddress #need this for ip address handing
 
 
 def get_asa_net_obj(asa_config):
@@ -39,18 +39,17 @@ def get_asa_net_obj(asa_config):
     for i in obj_list: # for each object in the list
         obj_name_str = "".join(i[0]) #turn the tuple into a string
         obj_dict[i[0]] = {} #make a dictionary named after the object
-        #obj_dict[i[0]]["name"] = i[0].rstrip() # the name of the object
         obj_dict[i[0]]["type"] = i[1] # the type of the object
 
         #clean up the data depending on the objects type
         if obj_dict[i[0]]["type"] == "fqdn":
             obj_dict[i[0]]["fqdn"] = re.split("\s|/",i[2]).pop()
-        if obj_dict[i[0]]["type"] == "host":
+        elif obj_dict[i[0]]["type"] == "host":
             obj_dict[i[0]]["host"] = i[2]
         elif obj_dict[i[0]]["type"] == "subnet":
             network,subnet = re.split("\s|/",i[2])
             obj_dict[i[0]]["network"] = network
-            obj_dict[i[0]]["prefixlen"] = ipaddress.ip_network(network + '/' + subnet).prefixlen #works for ipv4 and 6
+            obj_dict[i[0]]["prefixlen"] = str(ipaddress.ip_network(network + '/' + subnet).prefixlen) #works for ipv4 and 6
         elif obj_dict[i[0]]["type"] == "range":
             range_first,range_last = i[2].split(" ")
             obj_dict[i[0]]["range first"] = range_first

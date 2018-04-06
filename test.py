@@ -4,6 +4,7 @@ import sys #needed for arguments
 import pprint #needed to print data formats for figuring suff out
 import re #regex wanted
 import asa #libary for handling ASA configurations
+import fgt #library for handling FGT configurations
 
 
 '''
@@ -38,6 +39,8 @@ opts = getopts(sys.argv)
 in_config = open(opts["filename"], 'r').read()
 
 
-obj_dict = asa.get_asa_net_obj(in_config)
+obj_dict = asa.get_asa_net_obj(in_config) #Create a Dictionary of objects
 
-pprint.pprint(obj_dict)
+print(fgt.fgt_obj_str(obj_dict))
+
+#pprint.pprint(obj_dict)
