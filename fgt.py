@@ -37,25 +37,7 @@ def fgt_obj_str(obj_dict):
             obj_str += "set start-ip %s\n" %( obj_data['range first'] )
             obj_str += "set end-ip %s\n" %( obj_data['range last'] )
 
+        if "desc" in obj_data:
+                obj_str += "set comment %s\n" %( obj_data['desc'] )
+
     return obj_str
-
-'''
-config firewall address
-    edit "RANGE_NAME"
-        set uuid dbe35774-3cd7-51e6-11fd-f53f0a076875
-        set type iprange
-        set start-ip 10.212.134.200
-        set end-ip 10.212.134.210
-    next
-    edit "SUBNET_NAME"
-        set uuid dbe3810e-3cd7-51e6-0bd3-5e57e74e13bb
-        set type ipmask
-        set subnet 192.168.10.0 255.255.255.0
-    next
-    edit "GOOGLE"
-        set uuid dbe4ae58-3cd7-51e6-619c-ded65afd8182
-        set type fqdn
-        set fqdn "google.com"
-    next
-
-'''

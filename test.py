@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 
 import sys #needed for arguments
-import pprint #needed to print data formats for figuring suff out
+from pprint import pprint #needed to print data formats for figuring suff out
 import re #regex wanted
 import asa #libary for handling ASA configurations
 import fgt #library for handling FGT configurations
@@ -38,9 +38,10 @@ opts = getopts(sys.argv)
 # creates a string with the contents of filename from LCI options
 in_config = open(opts["filename"], 'r').read()
 
+obj_dict = asa.get_asa_net_obj(in_config) #Create a Dictionary of objects from the asa config
 
-obj_dict = asa.get_asa_net_obj(in_config) #Create a Dictionary of objects
+#pprint(obj_dict)
 
-print(fgt.fgt_obj_str(obj_dict))
+print(fgt.fgt_obj_str(obj_dict)) # write objects to fortigate format
 
 #pprint.pprint(obj_dict)
