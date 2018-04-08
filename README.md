@@ -12,18 +12,22 @@ Fortigate
 name {
   type: fqdn,
   fqdn: FQDN_STR
+  desc: DESCRIPTION_STR #optional
 }
 name {
   type: "range",
   range first: FIRST_IP_STR
   range last: LAST_IP_STR
+  desc: DESCRIPTION_STR #optional
 }
 name {
   type: host,
   host: HOST_IP_STR
+  desc: DESCRIPTION_STR #optional
 name {
   type: subnet
   network: NET_ADDR_STR
   prefixlen: PREFIX_LEN_STR  
+  desc: DESCRIPTION_STR #optional
 }
 '''

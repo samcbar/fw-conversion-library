@@ -3,7 +3,8 @@
 
 import re # going to need regex
 import ipaddress #need this for ip address handing
-
+from pprint import pprint #needed to figure stuff out with dict/lists
+from ciscoconfparse import CiscoConfParse #courtesy of github/mpenning
 
 def get_asa_net_obj(asa_config):
     '''
@@ -16,44 +17,59 @@ def get_asa_net_obj(asa_config):
         IP Address Ranges
     '''
 
-    # network object regex string
-    _RE_NETOBJECT_STR = r'^object\s+network\s+(.*)\s+(subnet|range|host|fqdn)\s+(.*)'
-    # compiled network object regex
-    _RE_NETOBJ = re.compile(_RE_NETOBJECT_STR, re.MULTILINE)
-    # finds all the objects, but not descriptions, makes a list of tuples
-    obj_list = _RE_NETOBJ.findall(asa_config)
+    # create the CiscoConfParse class object
+    parsed_conf = CiscoConfParse(asa_config.splitlines())
+    # create a list containg the network object lines and thier children
+    obj_list = parsed_conf.find_children( "^object network\s" )
 
-    #
-    # format for dictionary
-    #
-    # name: obj-GPYVPF201325BL {
-    #   type: fqdn
-    #   fqdn: GPYVPF201325BL.lstc.lesschwab.com
-    # }
-    #
+    # network object name regex string
+    _RE_NETOBJ_NAME_STR = r'^object\s+network\s+(.*)'
+    # compiled network object name compiled regex
+    _RE_NETOBJ_NAME = re.compile(_RE_NETOBJ_NAME_STR)
+
+    #network object type regex string, returns the type and data from this string
+    _RE_NETOBJ_TYPE_STR = r'^(subnet|range|host|fqdn)\s+(.*)'
+    #network compiled regex
+    _RE_NETOBJ_TYPE = re.compile(_RE_NETOBJ_TYPE_STR)
+
+    #network object description regex
+    _RE_NETOBJ_DESC_STR = r'^description\s(.*)'
+    #network object description
+    _RE_NETOBJ_DESC = re.compile(_RE_NETOBJ_DESC_STR)
+
+    #\s+(subnet|range|host|fqdn)\s+(.*)
 
     # dictionary of objects
     obj_dict = {}
 
+    for line in obj_list: # for each object in the list
+        line = line.lstrip() #remove the leading whitespace
 
-    for i in obj_list: # for each object in the list
-        obj_name_str = "".join(i[0]) #turn the tuple into a string
-        obj_dict[i[0]] = {} #make a dictionary named after the object
-        obj_dict[i[0]]["type"] = i[1] # the type of the object
 
-        #clean up the data depending on the objects type
-        if obj_dict[i[0]]["type"] == "fqdn":
-            obj_dict[i[0]]["fqdn"] = re.split("\s|/",i[2]).pop()
-        elif obj_dict[i[0]]["type"] == "host":
-            obj_dict[i[0]]["host"] = i[2]
-        elif obj_dict[i[0]]["type"] == "subnet":
-            network,subnet = re.split("\s|/",i[2])
-            obj_dict[i[0]]["network"] = network
-            obj_dict[i[0]]["prefixlen"] = str(ipaddress.ip_network(network + '/' + subnet).prefixlen) #works for ipv4 and 6
-        elif obj_dict[i[0]]["type"] == "range":
-            range_first,range_last = i[2].split(" ")
-            obj_dict[i[0]]["range first"] = range_first
-            obj_dict[i[0]]["range last"] = range_last
+        #get the important facts from the configuration lines
+        if re.search(_RE_NETOBJ_NAME, line):
+            obj_name = re.search(_RE_NETOBJ_NAME, line).group(1)
+            obj_dict[obj_name] = {}
+        elif re.search(_RE_NETOBJ_TYPE_STR, line):
+            obj_type, obj_data = re.search(_RE_NETOBJ_TYPE_STR, line).group(1, 2)
+            obj_dict[obj_name]['type'] = obj_type
+            #obj_data needs to be further parsed
+            if obj_type == "fqdn":
+                obj_dict[obj_name]["fqdn"] = re.split("\s|/", obj_data).pop()
+            elif obj_type == "host":
+                obj_dict[obj_name]["host"] = obj_data
+            elif obj_type == "subnet":
+                network, subnet = re.split("\s|/", obj_data)
+                obj_dict[obj_name]["network"] = network
+                obj_dict[obj_name]["prefixlen"] = str(ipaddress.ip_network(network + '/' + subnet).prefixlen) #works for ipv4 and 6
+            elif obj_type == "range":
+                range_first, range_last = obj_data.split(" ")
+                obj_dict[obj_name]["range first"] = range_first
+                obj_dict[obj_name]["range last"] = range_last
+
+        elif re.search(_RE_NETOBJ_DESC, line):
+            obj_desc = re.search(_RE_NETOBJ_DESC, line).group(1)
+            obj_dict[obj_name]["desc"] = obj_desc
 
     # return the dictionary of objects
     return obj_dict
