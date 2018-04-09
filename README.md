@@ -8,6 +8,7 @@ Fortigate
 
 # Network Object Dictionary Format
 
+```
 name {
   type: fqdn,
   fqdn: FQDN_STR
@@ -29,3 +30,4 @@ name {
   prefixlen: PREFIX_LEN_STR  
   desc: DESCRIPTION_STR #optional
 }
+```
