@@ -8,7 +8,7 @@ Fortigate
 
 # Network Object Dictionary Format
 
-'''name {
+name {
   type: fqdn,
   fqdn: FQDN_STR
   desc: DESCRIPTION_STR #optional
@@ -28,4 +28,4 @@ name {
   network: NET_ADDR_STR
   prefixlen: PREFIX_LEN_STR  
   desc: DESCRIPTION_STR #optional
-}'''
+}
